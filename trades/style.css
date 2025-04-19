@@ -5,7 +5,8 @@ section#trades {
 
 /* Override chart container styles for this page if needed */
 .chart-container {
-    margin-bottom: 30px;
+    margin-bottom: 50px;
+    padding-bottom: 70px;
 }
 
 /* Trade selection styling */
@@ -16,4 +17,10 @@ section#trades {
     font-size: 16px;
     margin: 15px 0;
     background-color: #fff;
+
+    transition: border-color 0.3s;
+}
+
+#trade-select:hover {
+    border-color: #0A74DA;
 }
