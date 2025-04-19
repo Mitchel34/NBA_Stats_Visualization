@@ -1,4 +1,4 @@
-// trades/mockTradeData.js
+
 
 // Basic list of NBA teams for opponent generation
 const ALL_TEAMS = [
