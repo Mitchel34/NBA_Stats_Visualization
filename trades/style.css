@@ -1,0 +1,19 @@
+/* Trades page specific styles */
+section#trades {
+    /* Add any trades-specific styling here */
+}
+
+/* Override chart container styles for this page if needed */
+.chart-container {
+    margin-bottom: 30px;
+}
+
+/* Trade selection styling */
+#trade-select {
+    padding: 8px 12px;
+    border: 2px solid #17408B;
+    border-radius: 5px;
+    font-size: 16px;
+    margin: 15px 0;
+    background-color: #fff;
+}

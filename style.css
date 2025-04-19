@@ -1,0 +1,89 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+header {
+    background-color: #17408B; /* NBA Blue */
+    color: #FFFFFF; /* White */
+    padding: 1rem 0;
+    text-align: center;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin: 0 10px;
+}
+
+nav ul li a {
+    color: #FFFFFF; /* White */
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+nav ul li a:hover,
+nav ul li a.active {
+    background-color: #CE1141; /* NBA Red */
+}
+
+main {
+    padding: 20px;
+}
+
+section { /* Style sections directly now */
+    background-color: #fff;
+    padding: 20px;
+    margin-top: 15px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.chart-container {
+    margin-top: 30px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    height: 400px; /* Fixed height */
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Ensure canvases respect the container size */
+.chart-container canvas {
+    max-width: 100%;
+}
+
+#player-stats-chart {
+    height: 350px !important; /* Fixed height for players chart */
+}
+
+#team-win-percentage-chart {
+    height: 350px !important; /* Fixed height for teams chart */
+}
+
+footer {
+    text-align: center;
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #17408B; /* NBA Blue */
+    color: #FFFFFF; /* White */
+    font-size: 0.8em;
+}
+
+label {
+    margin-right: 10px;
+}
+
+select {
+    padding: 5px;
+    margin-bottom: 20px;
+}
