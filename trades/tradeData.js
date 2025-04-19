@@ -27,10 +27,9 @@ export async function loadTradeData(csvPath = '../data/database_24_25.csv') {
 export function getPlayerGamesAfterTrade(data, playerName, teamAbbr, tradeDate) {
     const tradeDateObj = new Date(tradeDate);
     return data.filter(row => {
-        const gameDate = new Date(row.GAME_DATE_EST?.substring(0, 10));
-        const isHome = row.TEAM_ABBREVIATION_HOME === teamAbbr && row.PLAYER_NAME_HOME === playerName;
-        const isAway = row.TEAM_ABBREVIATION_AWAY === teamAbbr && row.PLAYER_NAME_AWAY === playerName;
-        return (isHome || isAway) && gameDate >= tradeDateObj;
+        // Use actual column names: 'Data', 'Player', 'Tm'
+        const gameDate = new Date(row.Data?.substring(0, 10)); 
+        return row.Player === playerName && row.Tm === teamAbbr && gameDate >= tradeDateObj;
     });
 }
 
@@ -41,14 +40,15 @@ export function calculatePlayerStats(games) {
     games.forEach(g => {
         totalPts += g.PTS || 0;
         let min = 0;
-        if (typeof g.MIN === 'string' && g.MIN.includes(':')) {
-            const parts = g.MIN.split(':');
+        // Use MP (Minutes Played) instead of MIN which doesn't exist in our data
+        if (typeof g.MP === 'string' && g.MP.includes(':')) {
+            const parts = g.MP.split(':');
             min = parseInt(parts[0], 10) + parseInt(parts[1], 10) / 60;
-        } else if (typeof g.MIN === 'number') {
-            min = g.MIN;
+        } else if (typeof g.MP === 'number') {
+            min = g.MP;
         }
         totalMin += min;
-        totalFGM += g.FGM || 0;
+        totalFGM += g.FG || 0;  // Use FG instead of FGM
         totalFGA += g.FGA || 0;
     });
     return {
@@ -63,27 +63,45 @@ export function calculatePlayerStats(games) {
 export function getTeamGamesAfterTrade(data, teamAbbr, tradeDate) {
     const tradeDateObj = new Date(tradeDate);
     return data.filter(row => {
-        const gameDate = new Date(row.GAME_DATE_EST?.substring(0, 10));
-        return (row.TEAM_ABBREVIATION_HOME === teamAbbr || row.TEAM_ABBREVIATION_AWAY === teamAbbr) && gameDate >= tradeDateObj;
-    }).sort((a, b) => new Date(a.GAME_DATE_EST) - new Date(b.GAME_DATE_EST));
+        // Use actual column names: 'Data', 'Tm'
+        const gameDate = new Date(row.Data?.substring(0, 10));
+        return row.Tm === teamAbbr && gameDate >= tradeDateObj;
+    }).sort((a, b) => new Date(a.Data) - new Date(b.Data)); // Sort by 'Data'
 }
 
 // Calculate win percentage timeline for a team
 export function calculateWinPercentageTimeline(games, teamAbbr) {
     let wins = 0, losses = 0;
     const timeline = [];
+    // Group games by date first to handle multiple games per day correctly
+    const gamesByDate = {};
     games.forEach(g => {
-        let won = false;
-        if (g.TEAM_ABBREVIATION_HOME === teamAbbr && g.WL_HOME === 'W') won = true;
-        if (g.TEAM_ABBREVIATION_AWAY === teamAbbr && g.WL_AWAY === 'W') won = true;
+        const dateStr = g.Data.substring(0, 10);
+        if (!gamesByDate[dateStr]) {
+            gamesByDate[dateStr] = [];
+        }
+        gamesByDate[dateStr].push(g);
+    });
+
+    // Sort dates
+    const sortedDates = Object.keys(gamesByDate).sort((a, b) => new Date(a) - new Date(b));
+
+    // Process games chronologically by date
+    sortedDates.forEach(dateStr => {
+        // For simplicity, assume the result ('W'/'L') is consistent for a team on a given day if they played.
+        // A more robust approach might need game IDs if a team played twice.
+        const gameOnDate = gamesByDate[dateStr][0]; // Take the first game if multiple
+        let won = gameOnDate.Res === 'W'; // Use 'Res' column for Win/Loss
+        
         if (won) wins++; else losses++;
         const total = wins + losses;
         timeline.push({
-            date: g.GAME_DATE_EST.substring(0, 10),
+            date: dateStr,
             winPct: total ? (wins / total) * 100 : 0
         });
     });
-    // Deduplicate by date, keep last entry per date
+
+    // Deduplication might not be strictly necessary now but kept for safety
     const deduped = {};
     timeline.forEach(t => { deduped[t.date] = t.winPct; });
     return Object.entries(deduped).map(([date, winPct]) => ({ date, winPct })).sort((a, b) => new Date(a.date) - new Date(b.date));

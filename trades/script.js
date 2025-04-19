@@ -1,9 +1,10 @@
 import { loadTradeData, getPlayerGamesAfterTrade, calculatePlayerStats, getTeamGamesAfterTrade, calculateWinPercentageTimeline } from './tradeData.js';
+import { generateMockGames } from './mockTradeData.js'; // Import mock data generator
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Trades Page Loaded');
     const tradeSelect = document.getElementById('trade-select');
-    let allGamesData = [];
+    let allGamesData = []; // Will hold combined real + mock data
     let playerStatsChart = null;
     let teamWinPercentageChart = null;
 
@@ -55,12 +56,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function handleTradeSelection(tradeId) {
+        console.log(`Handling trade selection for: ${tradeId}`); // Log trade ID
         if (!tradeId || !allGamesData.length) {
+            console.log('No trade selected or no game data, clearing charts.');
             clearCharts();
             return;
         }
         const tradeInfo = trades[tradeId];
-        if (!tradeInfo) return;
+        if (!tradeInfo) {
+            console.error(`Trade info not found for ID: ${tradeId}`);
+            return;
+        }
+        console.log('Trade Info:', tradeInfo); // Log trade info
 
         // 1. Player Stats
         const playerStats = {};
@@ -69,6 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const games = getPlayerGamesAfterTrade(allGamesData, player, newTeam, tradeInfo.date);
             playerStats[player] = { ...calculatePlayerStats(games), team: newTeam };
         }
+        console.log('Calculated Player Stats:', playerStats); // Log player stats
         updatePlayerStatsChart(playerStats, tradeInfo);
 
         // 2. Team Win Percentages
@@ -77,7 +85,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             const games = getTeamGamesAfterTrade(allGamesData, team, tradeInfo.date);
             teamWinPercentages[team] = calculateWinPercentageTimeline(games, team);
         }
-        updateTeamWinPercentageChart(teamWinPercentages, tradeInfo);
+        console.log('Calculated Team Win Percentages:', teamWinPercentages); // Log team win percentages
+
+        // Find the latest date from the win percentage timelines
+        let latestDate = tradeInfo.date;
+        tradeInfo.teams.forEach(team => {
+            const timeline = teamWinPercentages[team];
+            if (timeline && timeline.length > 0) {
+                const lastDate = timeline[timeline.length - 1].date;
+                if (new Date(lastDate) > new Date(latestDate)) {
+                    latestDate = lastDate;
+                }
+            }
+        });
+        console.log(`Setting chart date range: ${tradeInfo.date} to ${latestDate}`); // Log date range
+
+        updateTeamWinPercentageChart(teamWinPercentages, tradeInfo, latestDate);
     }
 
     // --- Chart Update Functions --- //
@@ -153,39 +176,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    function updateTeamWinPercentageChart(teamWinPercentages, tradeInfo) {
+    function updateTeamWinPercentageChart(teamWinPercentages, tradeInfo, latestDate) { // Add latestDate parameter
         const ctx = document.getElementById('team-win-percentage-chart').getContext('2d');
         const datasets = [];
-        // Use NBA colors
-        const colors = [
+        
+        // NBA team colors map
+        const teamColors = {
+            'LAL': {color: 'rgba(85, 37, 130, 1)', secondary: 'rgba(253, 185, 39, 1)'}, // Lakers - Purple & Gold
+            'DAL': {color: 'rgba(0, 83, 188, 1)', secondary: 'rgba(0, 43, 92, 1)'}, // Mavericks - Blue
+            'MIL': {color: 'rgba(0, 71, 27, 1)', secondary: 'rgba(240, 235, 210, 1)'}, // Bucks - Green & Cream
+            'WAS': {color: 'rgba(0, 43, 92, 1)', secondary: 'rgba(227, 24, 55, 1)'}, // Wizards - Navy & Red
+            'TOR': {color: 'rgba(206, 17, 65, 1)', secondary: 'rgba(0, 0, 0, 1)'}, // Raptors - Red & Black
+            'NOP': {color: 'rgba(0, 22, 65, 1)', secondary: 'rgba(225, 58, 62, 1)'}, // Pelicans - Navy & Red
+            'CLE': {color: 'rgba(134, 0, 56, 1)', secondary: 'rgba(253, 187, 48, 1)'}, // Cavaliers - Wine & Gold
+            'ATL': {color: 'rgba(225, 68, 52, 1)', secondary: 'rgba(196, 214, 0, 1)'}, // Hawks - Red & Volt Green
+            // Add more teams as needed
+        };
+
+        // Default colors if team not in the map
+        const defaultColors = [
             'rgba(206, 17, 65, 1)', // NBA Red
             'rgba(23, 64, 139, 1)',  // NBA Blue
             'rgba(0, 125, 195, 1)',  // Light Blue
             'rgba(253, 185, 39, 1)'  // Gold
         ];
-        let colorIndex = 0;
 
         // Simplify data processing to improve performance
-        tradeInfo.teams.forEach(teamAbbr => {
+        tradeInfo.teams.forEach((teamAbbr, index) => {
             const teamData = teamWinPercentages[teamAbbr] || [];
             
             // Only use actual data points without interpolation
             if (teamData.length > 0) {
+                // Use team colors if available, otherwise fall back to default colors
+                const teamColor = teamColors[teamAbbr] 
+                    ? teamColors[teamAbbr].color 
+                    : defaultColors[index % defaultColors.length];
+                
                 datasets.push({
                     label: `${teamAbbr} Win % (Post-Trade)`,
                     data: teamData.map(point => ({
                         x: point.date,
                         y: parseFloat(point.winPct)
                     })),
-                    borderColor: colors[colorIndex % colors.length],
-                    backgroundColor: colors[colorIndex % colors.length].replace('1)', '0.1)'),
+                    borderColor: teamColor,
+                    backgroundColor: teamColor.replace('1)', '0.1)'),
                     tension: 0.2,
                     fill: false,
                     pointRadius: 3,
                     borderWidth: 2,
                     spanGaps: true
                 });
-                colorIndex++;
             }
         });
 
@@ -215,7 +255,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                         title: {
                             display: true,
                             text: 'Date'
-                        }
+                        },
+                        min: tradeInfo.date, // Set min date to trade date
+                        max: latestDate      // Set max date to latest game date
                     },
                     y: {
                         beginAtZero: true,
@@ -266,13 +308,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Initial Load --- //
     async function init() {
         try {
-            allGamesData = await loadTradeData();
-            console.log(`Loaded ${allGamesData.length} game records`);
+            const realGamesData = await loadTradeData();
+            console.log(`Loaded ${realGamesData.length} real game records.`);
+
+            // Define the date range for mock data
+            const mockStartDate = '2025-02-08'; // Start after the last real data
+            const mockEndDate = '2025-04-01';
+
+            // Generate mock games
+            const mockGamesData = generateMockGames(mockStartDate, mockEndDate, trades);
+
+            // Combine real and mock data
+            allGamesData = [...realGamesData, ...mockGamesData];
+
+            // Sort combined data by date
+            allGamesData.sort((a, b) => new Date(a.Data) - new Date(b.Data));
+
+            console.log(`Total game records (real + mock): ${allGamesData.length}`);
+            console.log(`First record:`, allGamesData.length > 0 ? allGamesData[0] : 'No data');
+            console.log(`Last record:`, allGamesData.length > 0 ? allGamesData[allGamesData.length - 1] : 'No data');
+
             if (tradeSelect.value) {
                 handleTradeSelection(tradeSelect.value);
+            } else {
+                // Optionally, trigger the first trade automatically if none is selected
+                if (Object.keys(trades).length > 0) {
+                    const firstTradeId = Object.keys(trades)[0];
+                    tradeSelect.value = firstTradeId; // Update dropdown
+                    handleTradeSelection(firstTradeId); // Load data for the first trade
+                }
             }
         } catch (error) {
-            console.error('Error loading trade data:', error);
+            console.error('Error during initial data load and processing:', error);
         }
     }
 
