@@ -124,14 +124,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                         data: ppgData,
                         backgroundColor: 'rgba(206, 17, 65, 0.7)', // NBA Red
                         borderColor: 'rgba(206, 17, 65, 1)',
-                        borderWidth: 1
+                        borderWidth: 1,
+                        barPercentage: 0.8,
+                        categoryPercentage: 0.9
                     },
                     {
                         label: 'Avg MPG (Post-Trade)',
                         data: mpgData,
                         backgroundColor: 'rgba(23, 64, 139, 0.7)', // NBA Blue
                         borderColor: 'rgba(23, 64, 139, 1)',
-                        borderWidth: 1
+                        borderWidth: 1,
+                        barPercentage: 0.8,
+                        categoryPercentage: 0.9
                     }
                 ]
             },
@@ -150,15 +154,32 @@ document.addEventListener('DOMContentLoaded', async () => {
                 },
                 plugins: {
                     tooltip: {
+                        position: 'nearest',
+                        yAlign: 'center', // Position tooltip in the vertical center
+                        xAlign: 'center', // Position tooltip in the horizontal center
+                        caretPadding: 10, // Add padding for the caret
                         callbacks: {
                             label: function(context) {
                                 let label = context.dataset.label || '';
+                                let value = '';
+
+                                if (context.parsed.y !== null) {
+                                    // Format the value based on the dataset label
+                                    if (context.dataset.label === 'Avg PPG (Post-Trade)') {
+                                        value = context.parsed.y.toFixed(2); // Format PPG to 2 decimal places
+                                    } else if (context.dataset.label === 'Avg MPG (Post-Trade)') {
+                                        value = context.parsed.y.toFixed(1); // Format MPG to 1 decimal place
+                                    } else {
+                                        value = context.parsed.y; // Default formatting
+                                    }
+                                }
+
                                 if (label) {
                                     label += ': ';
                                 }
-                                if (context.parsed.y !== null) {
-                                    label += context.parsed.y;
-                                }
+                                label += value; // Add the formatted value
+
+                                // Add additional stats (FG%, Games Played)
                                 const playerName = context.label.split(' (')[0];
                                 const stats = playerStats[playerName];
                                 if (stats) {
@@ -171,60 +192,173 @@ document.addEventListener('DOMContentLoaded', async () => {
                 },
                 animation: {
                     duration: 500 // Faster animations
+                },
+                onHover: (event, elements) => {
+                    if (elements.length > 0) {
+                        const element = elements[0];
+                        const index = element.index;
+                        const datasetIndex = element.datasetIndex;
+                        const playerLabel = playerStatsChart.data.labels[index];
+                        const playerName = playerLabel.split(' (')[0];
+                        const playerTeam = playerStats[playerName].team;
+                        
+                        // Highlight same stat type (PPG or MPG) for all players
+                        highlightSameStatType(datasetIndex);
+                        
+                        // Highlight the corresponding team in the win percentage chart
+                        highlightTeamLine(playerTeam);
+                    } else {
+                        // Reset all highlights when not hovering
+                        resetHighlights();
+                    }
                 }
             }
         });
     }
 
-    function updateTeamWinPercentageChart(teamWinPercentages, tradeInfo, latestDate) { // Add latestDate parameter
+    // Function to highlight the same stat type (PPG or MPG) for all players
+    function highlightSameStatType(datasetIndex) {
+        if (!playerStatsChart) return;
+        
+        // Adjust opacity for highlighted vs non-highlighted datasets
+        playerStatsChart.data.datasets.forEach((dataset, i) => {
+            if (i === datasetIndex) {
+                // Highlight the hovered stat type
+                dataset.backgroundColor = i === 0 
+                    ? 'rgba(206, 17, 65, 0.9)' // PPG highlighted
+                    : 'rgba(23, 64, 139, 0.9)'; // MPG highlighted
+                dataset.borderWidth = 2;
+            } else {
+                // Dim the other stat type
+                dataset.backgroundColor = i === 0 
+                    ? 'rgba(206, 17, 65, 0.3)' // PPG dimmed
+                    : 'rgba(23, 64, 139, 0.3)'; // MPG dimmed
+                dataset.borderWidth = 1;
+            }
+        });
+        
+        playerStatsChart.update('none'); // Use 'none' to skip animation for immediate update
+    }
+
+    // Function to highlight a specific team's line in the win percentage chart
+    function highlightTeamLine(teamToHighlight) {
+        if (!teamWinPercentageChart) return;
+        
+        teamWinPercentageChart.data.datasets.forEach(dataset => {
+            const team = dataset.label; // Assuming label is the team abbreviation
+            const originalColor = getTeamColor(team, dataset.index); // Get original color
+            
+            if (team === teamToHighlight) {
+                // Highlight the selected team
+                dataset.borderColor = originalColor.replace(/rgba\(([^,]+,[^,]+,[^,]+),[^)]+\)/, 'rgba($1, 1)'); // Ensure full opacity
+                dataset.borderWidth = 4;
+                dataset.pointRadius = 8;
+                dataset.pointHoverRadius = 10;
+                dataset.z = 100; // Bring to front
+            } else {
+                // Dim other teams
+                dataset.borderColor = originalColor.replace(/rgba\(([^,]+,[^,]+,[^,]+),[^)]+\)/, 'rgba($1, 0.3)'); // Dim opacity
+                dataset.borderWidth = 1;
+                dataset.pointRadius = 6; // Ensure reset goes back to size 6
+                dataset.pointHoverRadius = 9;
+                dataset.z = 1;
+            }
+        });
+        
+        teamWinPercentageChart.update('none'); // Use 'none' to skip animation for immediate update
+    }
+
+    // Function to reset all highlights
+    function resetHighlights() {
+        // Reset player stats chart
+        if (playerStatsChart) {
+            playerStatsChart.data.datasets[0].backgroundColor = 'rgba(206, 17, 65, 0.7)'; // PPG default
+            playerStatsChart.data.datasets[1].backgroundColor = 'rgba(23, 64, 139, 0.7)'; // MPG default
+            playerStatsChart.data.datasets.forEach(dataset => {
+                dataset.borderWidth = 1;
+            });
+            playerStatsChart.update('none'); // Use 'none' to skip animation
+        }
+        
+        // Reset team win percentage chart
+        if (teamWinPercentageChart) {
+            teamWinPercentageChart.data.datasets.forEach((dataset, index) => {
+                const teamAbbr = dataset.label;
+                const teamColor = getTeamColor(teamAbbr, index);
+                
+                dataset.borderColor = teamColor; // Reset to original color and opacity
+                dataset.borderWidth = 2;
+                dataset.pointRadius = 6; // Ensure reset goes back to size 6
+                dataset.pointHoverRadius = 9;
+                dataset.z = 10 - index;
+            });
+            teamWinPercentageChart.update('none'); // Use 'none' to skip animation
+        }
+    }
+
+    // Helper function to get team color (ensure this is defined or accessible)
+    function getTeamColor(teamAbbr, index) {
+        // Define team colors (ensure this matches the colors used in updateTeamWinPercentageChart)
+        const teamColors = {
+            'LAL': 'rgba(85, 37, 130, 1)', 'DAL': 'rgba(0, 83, 188, 1)', 'MIL': 'rgba(0, 71, 27, 1)',
+            'WAS': 'rgba(0, 43, 92, 1)', 'TOR': 'rgba(206, 17, 65, 1)', 'NOP': 'rgba(0, 22, 65, 1)',
+            'CLE': 'rgba(134, 0, 56, 1)', 'ATL': 'rgba(225, 68, 52, 1)'
+        };
+        const defaultColors = [
+            'rgba(206, 17, 65, 1)', 'rgba(23, 64, 139, 1)', 'rgba(0, 125, 195, 1)', 'rgba(253, 185, 39, 1)'
+        ];
+        return teamColors[teamAbbr] || defaultColors[index % defaultColors.length];
+    }
+
+    function updateTeamWinPercentageChart(teamWinPercentages, tradeInfo, latestDate) { 
         const ctx = document.getElementById('team-win-percentage-chart').getContext('2d');
         const datasets = [];
         
-        // NBA team colors map
+        // NBA team colors map (ensure this is consistent or defined globally)
         const teamColors = {
-            'LAL': {color: 'rgba(85, 37, 130, 1)', secondary: 'rgba(253, 185, 39, 1)'}, // Lakers - Purple & Gold
-            'DAL': {color: 'rgba(0, 83, 188, 1)', secondary: 'rgba(0, 43, 92, 1)'}, // Mavericks - Blue
-            'MIL': {color: 'rgba(0, 71, 27, 1)', secondary: 'rgba(240, 235, 210, 1)'}, // Bucks - Green & Cream
-            'WAS': {color: 'rgba(0, 43, 92, 1)', secondary: 'rgba(227, 24, 55, 1)'}, // Wizards - Navy & Red
-            'TOR': {color: 'rgba(206, 17, 65, 1)', secondary: 'rgba(0, 0, 0, 1)'}, // Raptors - Red & Black
-            'NOP': {color: 'rgba(0, 22, 65, 1)', secondary: 'rgba(225, 58, 62, 1)'}, // Pelicans - Navy & Red
-            'CLE': {color: 'rgba(134, 0, 56, 1)', secondary: 'rgba(253, 187, 48, 1)'}, // Cavaliers - Wine & Gold
-            'ATL': {color: 'rgba(225, 68, 52, 1)', secondary: 'rgba(196, 214, 0, 1)'}, // Hawks - Red & Volt Green
-            // Add more teams as needed
+            'LAL': {color: 'rgba(85, 37, 130, 1)'}, 'DAL': {color: 'rgba(0, 83, 188, 1)'}, 'MIL': {color: 'rgba(0, 71, 27, 1)'},
+            'WAS': {color: 'rgba(0, 43, 92, 1)'}, 'TOR': {color: 'rgba(206, 17, 65, 1)'}, 'NOP': {color: 'rgba(0, 22, 65, 1)'},
+            'CLE': {color: 'rgba(134, 0, 56, 1)'}, 'ATL': {color: 'rgba(225, 68, 52, 1)'}
         };
-
-        // Default colors if team not in the map
         const defaultColors = [
-            'rgba(206, 17, 65, 1)', // NBA Red
-            'rgba(23, 64, 139, 1)',  // NBA Blue
-            'rgba(0, 125, 195, 1)',  // Light Blue
-            'rgba(253, 185, 39, 1)'  // Gold
+            'rgba(206, 17, 65, 1)', 'rgba(23, 64, 139, 1)', 'rgba(0, 125, 195, 1)', 'rgba(253, 185, 39, 1)'
         ];
 
-        // Simplify data processing to improve performance
+        // Create a mapping of teams to players involved in the trade
+        const teamToPlayersMap = {};
+        tradeInfo.keyPlayers.forEach(player => {
+            const team = Object.keys(tradeInfo.players).find(t => tradeInfo.players[t].acquired.includes(player));
+            if (team) {
+                if (!teamToPlayersMap[team]) {
+                    teamToPlayersMap[team] = [];
+                }
+                teamToPlayersMap[team].push(player);
+            }
+        });
+
+        // Simplify data processing
         tradeInfo.teams.forEach((teamAbbr, index) => {
             const teamData = teamWinPercentages[teamAbbr] || [];
-            
-            // Only use actual data points without interpolation
             if (teamData.length > 0) {
-                // Use team colors if available, otherwise fall back to default colors
-                const teamColor = teamColors[teamAbbr] 
-                    ? teamColors[teamAbbr].color 
-                    : defaultColors[index % defaultColors.length];
-                
+                const teamColor = teamColors[teamAbbr]?.color || defaultColors[index % defaultColors.length];
                 datasets.push({
-                    label: `${teamAbbr} Win % (Post-Trade)`,
-                    data: teamData.map(point => ({
-                        x: point.date,
-                        y: parseFloat(point.winPct)
-                    })),
+                    label: `${teamAbbr}`, // Use only team abbreviation for label
+                    team: teamAbbr, // Store team abbreviation for easier access
+                    originalColor: teamColor, // Store original color
+                    data: teamData.map(point => ({ x: point.date, y: parseFloat(point.winPct) })),
                     borderColor: teamColor,
                     backgroundColor: teamColor.replace('1)', '0.1)'),
                     tension: 0.2,
                     fill: false,
-                    pointRadius: 3,
+                    pointRadius: 6, // Ensure all points start at size 6
+                    pointHoverRadius: 9,
+                    pointBackgroundColor: teamColor,
+                    pointBorderColor: 'white',
+                    pointBorderWidth: 1.5,
+                    pointHitRadius: 10,
                     borderWidth: 2,
-                    spanGaps: true
+                    spanGaps: true,
+                    z: 10 - index
                 });
             }
         });
@@ -243,45 +377,124 @@ document.addEventListener('DOMContentLoaded', async () => {
                 maintainAspectRatio: true,
                 aspectRatio: 2,
                 scales: {
-                    x: {
+                    x: { 
+                        // ... existing x-axis config ...
                         type: 'time',
                         time: {
                             unit: 'day',
                             tooltipFormat: 'MMM dd, yyyy',
-                            displayFormats: {
-                                day: 'MMM dd'
-                            }
+                            displayFormats: { day: 'MMM dd' }
                         },
-                        title: {
-                            display: true,
-                            text: 'Date'
-                        },
-                        min: tradeInfo.date, // Set min date to trade date
-                        max: latestDate      // Set max date to latest game date
+                        title: { display: true, text: 'Date' },
+                        min: tradeInfo.date,
+                        max: latestDate
                     },
-                    y: {
+                    y: { 
+                        // ... existing y-axis config ...
                         beginAtZero: true,
                         max: 100,
-                        title: {
-                            display: true,
-                            text: 'Win Percentage (%)'
-                        }
+                        title: { display: true, text: 'Win Percentage (%)' }
                     }
                 },
                 plugins: {
                     tooltip: {
-                        mode: 'index',
-                        intersect: false
+                        // ... existing tooltip config ...
+                        enabled: true,
+                        mode: 'point',
+                        intersect: true,
+                        position: 'nearest',
+                        callbacks: {
+                            label: function(context) {
+                                const teamAbbr = context.dataset.label;
+                                return `${teamAbbr} Win %: ${context.parsed.y.toFixed(1)}%`;
+                            },
+                            title: function(tooltipItems) {
+                                if (tooltipItems.length > 0) {
+                                    const date = new Date(tooltipItems[0].parsed.x);
+                                    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                                }
+                                return '';
+                            }
+                        }
                     },
-                    legend: {
-                        position: 'top'
+                    legend: { 
+                        // ... existing legend config ...
+                        position: 'top' 
+                    }
+                },
+                interaction: {
+                    mode: 'point', 
+                    intersect: true,
+                    axis: 'xy'
+                },
+                hover: {
+                    mode: 'point',
+                    intersect: true,
+                    animationDuration: 0
+                },
+                elements: {
+                    point: {
+                        radius: 6, // Explicitly set default radius in elements config
+                        hitRadius: 8, 
+                        hoverRadius: 9 
+                    }
+                },
+                onHover: (event, elements) => {
+                    if (elements.length > 0) {
+                        const element = elements[0];
+                        const datasetIndex = element.datasetIndex;
+                        const team = teamWinPercentageChart.data.datasets[datasetIndex].team;
+                        
+                        // Highlight this team's line
+                        highlightTeamLine(team);
+                        
+                        // Find players on this team and highlight their bars
+                        const players = teamToPlayersMap[team] || [];
+                        if (players.length > 0) {
+                            highlightPlayerBars(players);
+                        }
+                    } else {
+                        // Reset all highlights when not hovering
+                        resetHighlights();
                     }
                 },
                 animation: {
-                    duration: 500 // Faster animations
+                    duration: 500
                 }
             }
         });
+    }
+
+    // Function to highlight player bars based on team selection
+    function highlightPlayerBars(playersToHighlight) {
+        if (!playerStatsChart) return;
+        
+        const allPlayerLabels = playerStatsChart.data.labels;
+        const highlightIndices = [];
+
+        // Find indices of players to highlight
+        allPlayerLabels.forEach((label, index) => {
+            const playerName = label.split(' (')[0];
+            if (playersToHighlight.includes(playerName)) {
+                highlightIndices.push(index);
+            }
+        });
+
+        // Apply highlighting/dimming
+        playerStatsChart.data.datasets.forEach((dataset, datasetIndex) => {
+            const defaultColor = datasetIndex === 0 ? 'rgba(206, 17, 65, 0.7)' : 'rgba(23, 64, 139, 0.7)';
+            const highlightColor = datasetIndex === 0 ? 'rgba(206, 17, 65, 0.9)' : 'rgba(23, 64, 139, 0.9)';
+            const dimColor = datasetIndex === 0 ? 'rgba(206, 17, 65, 0.3)' : 'rgba(23, 64, 139, 0.3)';
+
+            dataset.backgroundColor = allPlayerLabels.map((label, index) => {
+                return highlightIndices.includes(index) ? highlightColor : dimColor;
+            });
+            dataset.borderWidth = allPlayerLabels.map((label, index) => {
+                return highlightIndices.includes(index) ? 2 : 1;
+            });
+        });
+
+        playerStatsChart.update('none');
     }
 
     function clearCharts() {
