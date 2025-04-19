@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBA Trade Impact - NBA Stats Viz</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>NBA Stats Visualization (2024-2025 Season)</h1>
+        <nav>
+            <ul>
+                <li><a href="../index.html" class="nav-link">Home</a></li>
+                <li><a href="../mvp/index.html" class="nav-link">MVP Race</a></li>
+                <li><a href="../championship/index.html" class="nav-link">Championship Prediction</a></li>
+                <li><a href="../fouls/index.html" class="nav-link">Fouls Impact</a></li>
+                <li><a href="../trades/index.html" class="nav-link active">Trade Impact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="trades">
+            <h2>4. How were teams and players impacted by major trades this season?</h2>
+            <p>Select a trade to see the impact on player stats and team win percentages.</p>
+            <label for="trade-select">Choose a trade:</label>
+            <select name="trades" id="trade-select">
+              <option value="">--Please choose a trade--</option>
+              <option value="LAL-DAL">Lakers-Mavericks (Dončić/Davis)</option>
+              <option value="MIL-WAS">Bucks-Wizards (Middleton/Kuzma)</option>
+              <option value="TOR-NOP">Raptors-Pelicans (Ingram/Brown)</option>
+              <option value="CLE-ATL">Cavaliers-Hawks (Hunter/LeVert)</option>
+            </select>
+
+            <div class="chart-container">
+                <h3>Player Stats Comparison (Post-Trade)</h3>
+                <canvas id="player-stats-chart"></canvas>
+                <p>Comparing average Points Per Game (PPG) and Minutes Per Game (MPG) for key players on their new teams after the trade.</p>
+            </div>
+
+            <div class="chart-container">
+                <h3>Team Win Percentage Timeline (Post-Trade)</h3>
+                <canvas id="team-win-percentage-chart"></canvas>
+                <p>Tracking the win percentage of involved teams starting from the trade date.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>CS3435 Data Collection & Visualization - Dr. Tinghao Feng - Appalachian State University - Group 7 SVGeniuses</p>
+    </footer>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
