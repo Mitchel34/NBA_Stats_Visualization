@@ -1,4 +1,4 @@
-// Fouls page specific JavaScript
+// Fouls page specific JavaScript 
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Fouls Page Loaded');
