@@ -39,6 +39,15 @@ function createScatterPlot(data) {
         .domain(teams)
         .range(d3.schemeTableau10.concat(d3.schemeSet3)); // Use a large enough color range
 
+    const dropdown = d3.select("#chooseTeam");
+    dropdown.selectAll("option.teamChoices")
+        .data(teams)
+        .enter()
+        .append("option")
+        .attr("class", "teamChoices")
+        .attr("value", d => d)
+        .text(d => d);
+
     const xScale = d3.scaleLinear()
         .domain([0, d3.max(data, d => d.MP)])
         .range([0, width]);
@@ -47,16 +56,23 @@ function createScatterPlot(data) {
         .domain([0, d3.max(data, d => d.PTS)])
         .range([height, 0]);
 
+    const tooltip = d3.select("#tooltip");
+
     // Plot circles with color by team
-    svg.selectAll("circle")
-        .data(data)
-        .enter()
-        .append("circle")
-        .attr("cx", d => xScale(d.MP))
-        .attr("cy", d => yScale(d.PTS))
-        .attr("r", 5)
-        .style("fill", d => colorScale(d.Tm))
-        .style("opacity", 0.8);
+    // svg.selectAll("circle")
+    //     .data(data)
+    //     .enter()
+    //     .append("circle")
+    //     .attr("cx", d => xScale(d.MP))
+    //     .attr("cy", d => yScale(d.PTS))
+    //     .attr("r", 5)
+    //     .style("fill", d => colorScale(d.Tm))
+    //     .style("opacity", 0.8);
+
+
+
+    
+
 
     // X Axis
     svg.append("g")
@@ -103,5 +119,57 @@ function createScatterPlot(data) {
         .attr("dy", ".35em")
         .style("text-anchor", "start")
         .text(d => d);
+
+
+
+    function updateScatterPlot(selectedTeam) {
+        const filteredData = selectedTeam === "All" ? data : data.filter(d => d.Tm === selectedTeam);
+
+        const circles = svg.selectAll("circle.player-point")
+            .data(filteredData, d => d.Player);
+
+        circles.enter()
+            .append("circle")
+            .attr("class", "player-point")
+            .attr("cx", d => xScale(d.MP))
+            .attr("cy", d => yScale(d.PTS))
+            .attr("r", 5)
+            .style("fill", d => colorScale(d.Tm))
+            .style("opacity", 0.8)
+            .on("mouseover", function(event, d) {
+                tooltip.transition().duration(200).style("opacity", 0.9);
+                tooltip.html(`<strong>${d.Player}</strong><br>Team: ${d.Tm}<br>MP: ${d.MP}<br>PTS: ${d.PTS}`)
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+
+                    d3.select(this).attr("stroke", "#333").attr("stroke-width", 2);
+        })
+        .on("mousemove", function(event) {
+            // Move the tooltip as the mouse moves
+            tooltip.style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mouseout", function() {
+            // Hide tooltip when mouse leaves
+            tooltip.transition().duration(300).style("opacity", 0);
+
+            // Remove the circle border when the mouse leaves
+            d3.select(this).attr("stroke", null);
+            })
+            .merge(circles)
+            .transition()
+            .duration(500)
+            .attr("cx", d => xScale(d.MP))
+            .attr("cy", d => yScale(d.PTS));
+
+    circles.exit().remove();
+    }
+
+    updateScatterPlot("All");
+
+    dropdown.on("change", function() {
+        const selectedTeam = this.value;
+        updateScatterPlot(selectedTeam);
+    });
 }
 

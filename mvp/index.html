@@ -26,9 +26,14 @@
     <main>
         <section id="mvp">
             <h2>1. Who will win NBA League MVP?</h2>
+            <label for="chooseTeam">Filter by Team:</label>
+            <select id="chooseTeam">
+                <option value="All">All Teams</option>
+            </select>
             <div id = "chart-container"></div>
             <script src="script.js"></script>
         </section>
+
 
         
     </main>
@@ -39,5 +44,9 @@
 
     
     <!-- Add any page-specific JS scripts here -->
+
+    <!-- Tooltip container -->
+    <div id="tooltip"></div>
+
 </body>
 </html>
