@@ -6,6 +6,7 @@
     <title>NBA Championship Prediction - NBA Stats Viz</title>
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="style.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
     <header>
@@ -24,6 +25,19 @@
     <main>
         <section id="championship">
             <h2>2. Which team is most likely to win the 2025 NBA Championship?</h2>
+            <div id="chart-wrapper" style="display: flex; justify-content: center; align-items: flex-start; gap: 40px;">
+                <!-- Pie chart section with filter -->
+                <div class="pie-chart-container">
+                    <select id="monthFilter"></select> <!-- Pie chart filter dropdown -->
+                    <div id="pie-chart"></div>
+                </div>
+            
+                <!-- Bar chart section with filter -->
+                <div class="bar-chart-container">
+                    <select id="teamFilter"></select> <!-- Bar chart filter dropdown -->
+                    <div id="bar-chart"></div>
+                </div>
+            </div>
         </section>
     </main>
 
@@ -32,5 +46,7 @@
     </footer>
 
     <script src="script.js"></script>
+    <script src="teamLossesAndWinsMonth.js"></script>
+    <script src = "teamsTotalPointsMonth.js"></script>
 </body>
 </html>
