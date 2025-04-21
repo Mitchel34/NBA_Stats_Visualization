@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function ()
             "11": "November",
             "12": "December",
             "01": "January",
-            "02": "February"
+           //"02": "February"
         };
         
         const months = Object.keys(monthMap);
@@ -88,6 +88,8 @@ document.addEventListener("DOMContentLoaded", function ()
                 .on("click", function (event, d) {
                     const selectedTeam = d.data.team;
                     const selectedColor = d3.select(this).attr('fill');
+                    const wins = d.data.wins;
+                    const losses = d.data.losses;
 
                     // Reset all slices
                     svg.selectAll("path")
@@ -104,6 +106,11 @@ document.addEventListener("DOMContentLoaded", function ()
 
                     updateBarChart(selectedTeam, selectedColor);
                     d3.select("#teamFilter").property("value", selectedTeam);
+
+                    d3.select("#teamStatsDisplay").html(`
+                        <span style="color: ${selectedColor};">${selectedTeam}</span> - 
+                        Wins: ${wins}, Losses: ${losses}
+                    `);
                 });
 
             svg.selectAll(".label-group").remove();

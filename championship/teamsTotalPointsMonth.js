@@ -4,13 +4,17 @@ const containerHeight = 300;
 const width = containerWidth - margin.left - margin.right;
 const height = containerHeight - margin.top - margin.bottom;
 
-const svg = d3.select('.bar-chart-container')
+const chartContainer = d3.select('.bar-chart-container');
+
+// Create SVG for bar chart
+const svg = chartContainer
   .append('svg')
   .attr('width', width + margin.left + margin.right)
   .attr('height', height + margin.top + margin.bottom)
   .append('g')
   .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
+// Tooltip
 const tooltip = d3.select("body")
   .append("div")
   .style("position", "absolute")
@@ -97,3 +101,18 @@ d3.csv('../data/database_24_25.csv').then(data => {
 
   updateBarChart(teams[0]);
 });
+
+// Append a text area under the bar chart
+// Append a text area under the bar chart with pre-filled text
+chartContainer.append('div')
+  .style('margin-top', '10px')
+  .append('textarea')
+  .attr('id', 'barChartNotes')
+  .attr('placeholder', 'Add your notes here...')
+  .style('width', '500px')
+  .style('height', '200px')
+  .style('resize', 'none')
+  .style('font', '14px sans-serif')
+  .property('value', 'This chart shows total points scored per team by month.')
+  .attr("readonly", true);
+
