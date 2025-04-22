@@ -1,6 +1,20 @@
 /* Fouls page specific styles */
-section#fouls {
+/*section#fouls {
     /* Add any fouls-specific styling here */
-}
+/*}
 
 /* You can add additional styling for fouls visualizations here */
+#playerInfo {
+    padding: 1rem;
+    background: #f8f9fa;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    max-width: 400px;
+  }
+  #playerInfo h3 {
+    margin-top: 0;
+  }
+  #playerInfo ul {
+    padding-left: 1.2rem;
+  }
+  

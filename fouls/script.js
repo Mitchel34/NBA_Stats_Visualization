@@ -13,13 +13,23 @@
 //     // This is a placeholder for future development
 // }
 
+//Make BY team scatterplots to see total fouls for eacch player??
+
 document.addEventListener("DOMContentLoaded", function () {
-    const csvFilePath = "../data/database_24_25.csv"; // adjust path if needed
-  
+    const csvFilePath = "../data/database_24_25.csv";
     const plotContainer = document.createElement("div");
     plotContainer.id = "plot";
     plotContainer.style.height = "600px";
-    document.querySelector("#fouls").appendChild(plotContainer);
+  
+    const playerInfoBox = document.createElement("div");
+    playerInfoBox.id = "playerInfo";
+    playerInfoBox.style.marginTop = "20px";
+    playerInfoBox.style.fontFamily = "Georgia";
+    playerInfoBox.style.fontSize = "16px";
+  
+    const foulsSection = document.querySelector("#fouls");
+    foulsSection.appendChild(plotContainer);
+    foulsSection.appendChild(playerInfoBox);
   
     Plotly.d3.csv(csvFilePath, function (err, rows) {
       if (err) {
@@ -28,26 +38,35 @@ document.addEventListener("DOMContentLoaded", function () {
       }
   
       const teamStats = {};
+      const playerFoulsByTeam = {};
   
-      // Aggregate data per team
+      // Team & Player Data
       rows.forEach(row => {
         const team = row.Tm;
+        const player = row.Player;
         const fouls = +row.PF;
         const isWin = row.Res === "W";
   
         if (!teamStats[team]) {
           teamStats[team] = { totalFouls: 0, games: 0, wins: 0 };
+          playerFoulsByTeam[team] = {};
         }
   
         teamStats[team].totalFouls += fouls;
         teamStats[team].games += 1;
         if (isWin) teamStats[team].wins += 1;
+  
+        if (!playerFoulsByTeam[team][player]) {
+          playerFoulsByTeam[team][player] = 0;
+        }
+        playerFoulsByTeam[team][player] += fouls;
       });
   
       const teams = Object.keys(teamStats);
       const avgFouls = teams.map(team => teamStats[team].totalFouls / teamStats[team].games);
       const winPercents = teams.map(team => teamStats[team].wins / teamStats[team].games);
   
+      
       const trace = {
         x: avgFouls,
         y: winPercents,
@@ -62,7 +81,7 @@ document.addEventListener("DOMContentLoaded", function () {
         name: "Teams"
       };
   
-      // Calculate linear regression for trend line
+      // Make Trend line
       const n = avgFouls.length;
       const xMean = avgFouls.reduce((a, b) => a + b, 0) / n;
       const yMean = winPercents.reduce((a, b) => a + b, 0) / n;
@@ -72,6 +91,7 @@ document.addEventListener("DOMContentLoaded", function () {
         num += (avgFouls[i] - xMean) * (winPercents[i] - yMean);
         den += (avgFouls[i] - xMean) ** 2;
       }
+  
       const slope = num / den;
       const intercept = yMean - slope * xMean;
   
@@ -91,13 +111,44 @@ document.addEventListener("DOMContentLoaded", function () {
         name: "Trend Line"
       };
   
-      const layout = {
+    //   const layout = {
+    //     title: "Do Team Fouls Affect Win Rate?",
+    //     xaxis: { title: "Average Fouls per Game" },
+    //     yaxis: { title: "Win Percentage", tickformat: ".0%", range: [0, 1] },
+    //   };
+    const layout = {
         title: "Do Team Fouls Affect Win Rate?",
         xaxis: { title: "Average Fouls per Game" },
-        yaxis: { title: "Win Percentage", tickformat: ".0%", range: [0, 1] },
+        yaxis: { 
+          title: "Win Percentage", 
+          tickformat: ".0%", 
+          range: [0, 1],
+          titlefont: {
+            size: 18, 
+            family: 'Georgia'
+          }
+        },
+        font: {
+          family: 'Georgia',
+          size: 14
+        }
       };
   
       Plotly.newPlot("plot", [trace, trendLine], layout);
+  
+      // Click Event
+      document.getElementById("plot").on("plotly_click", function (data) {
+        const teamClicked = data.points[0].text;
+        const players = Object.entries(playerFoulsByTeam[teamClicked])
+          .sort((a, b) => b[1] - a[1]) 
+          .map(([player, fouls]) => `<li>${player}: ${fouls} fouls</li>`)
+          .join("");
+  
+        playerInfoBox.innerHTML = `
+          <h3>Players with Fouls for ${teamClicked}</h3>
+          <ul>${players}</ul>
+        `;
+      });
     });
   });
   
