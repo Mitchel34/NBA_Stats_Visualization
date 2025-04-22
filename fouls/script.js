@@ -1,14 +1,154 @@
-// Fouls page specific JavaScript
+// Fouls page specific JavaScript 
 
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Fouls Page Loaded');
-    // Fouls visualization code will go here
+// document.addEventListener('DOMContentLoaded', () => {
+//     console.log('Fouls Page Loaded');
+//     // Fouls visualization code will go here
     
-    // Initialize any Fouls page specific functionality
-    initFoulsPage();
-});
+//     // Initialize any Fouls page specific functionality
+//     initFoulsPage();
+// });
 
-function initFoulsPage() {
-    // Add your Fouls page initialization code here
-    // This is a placeholder for future development
-}
+// function initFoulsPage() {
+//     // Add your Fouls page initialization code here
+//     // This is a placeholder for future development
+// }
+
+//Make BY team scatterplots to see total fouls for eacch player??
+
+document.addEventListener("DOMContentLoaded", function () {
+    const csvFilePath = "../data/database_24_25.csv";
+    const plotContainer = document.createElement("div");
+    plotContainer.id = "plot";
+    plotContainer.style.height = "600px";
+  
+    const playerInfoBox = document.createElement("div");
+    playerInfoBox.id = "playerInfo";
+    playerInfoBox.style.marginTop = "20px";
+    playerInfoBox.style.fontFamily = "Georgia";
+    playerInfoBox.style.fontSize = "16px";
+  
+    const foulsSection = document.querySelector("#fouls");
+    foulsSection.appendChild(plotContainer);
+    foulsSection.appendChild(playerInfoBox);
+  
+    Plotly.d3.csv(csvFilePath, function (err, rows) {
+      if (err) {
+        console.error("CSV Load Error:", err);
+        return;
+      }
+  
+      const teamStats = {};
+      const playerFoulsByTeam = {};
+  
+      // Team & Player Data
+      rows.forEach(row => {
+        const team = row.Tm;
+        const player = row.Player;
+        const fouls = +row.PF;
+        const isWin = row.Res === "W";
+  
+        if (!teamStats[team]) {
+          teamStats[team] = { totalFouls: 0, games: 0, wins: 0 };
+          playerFoulsByTeam[team] = {};
+        }
+  
+        teamStats[team].totalFouls += fouls;
+        teamStats[team].games += 1;
+        if (isWin) teamStats[team].wins += 1;
+  
+        if (!playerFoulsByTeam[team][player]) {
+          playerFoulsByTeam[team][player] = 0;
+        }
+        playerFoulsByTeam[team][player] += fouls;
+      });
+  
+      const teams = Object.keys(teamStats);
+      const avgFouls = teams.map(team => teamStats[team].totalFouls / teamStats[team].games);
+      const winPercents = teams.map(team => teamStats[team].wins / teamStats[team].games);
+  
+      
+      const trace = {
+        x: avgFouls,
+        y: winPercents,
+        text: teams,
+        mode: "markers+text",
+        type: "scatter",
+        textposition: "top center",
+        marker: {
+          size: 12,
+          color: "royalblue"
+        },
+        name: "Teams"
+      };
+  
+      // Make Trend line
+      const n = avgFouls.length;
+      const xMean = avgFouls.reduce((a, b) => a + b, 0) / n;
+      const yMean = winPercents.reduce((a, b) => a + b, 0) / n;
+  
+      let num = 0, den = 0;
+      for (let i = 0; i < n; i++) {
+        num += (avgFouls[i] - xMean) * (winPercents[i] - yMean);
+        den += (avgFouls[i] - xMean) ** 2;
+      }
+  
+      const slope = num / den;
+      const intercept = yMean - slope * xMean;
+  
+      const xMin = Math.min(...avgFouls);
+      const xMax = Math.max(...avgFouls);
+  
+      const trendLine = {
+        x: [xMin, xMax],
+        y: [slope * xMin + intercept, slope * xMax + intercept],
+        mode: "lines",
+        type: "scatter",
+        line: {
+          color: "black",
+          width: 2,
+          dash: "dash"
+        },
+        name: "Trend Line"
+      };
+  
+    //   const layout = {
+    //     title: "Do Team Fouls Affect Win Rate?",
+    //     xaxis: { title: "Average Fouls per Game" },
+    //     yaxis: { title: "Win Percentage", tickformat: ".0%", range: [0, 1] },
+    //   };
+    const layout = {
+        title: "Do Team Fouls Affect Win Rate?",
+        xaxis: { title: "Average Fouls per Game" },
+        yaxis: { 
+          title: "Win Percentage", 
+          tickformat: ".0%", 
+          range: [0, 1],
+          titlefont: {
+            size: 18, 
+            family: 'Georgia'
+          }
+        },
+        font: {
+          family: 'Georgia',
+          size: 14
+        }
+      };
+  
+      Plotly.newPlot("plot", [trace, trendLine], layout);
+  
+      // Click Event
+      document.getElementById("plot").on("plotly_click", function (data) {
+        const teamClicked = data.points[0].text;
+        const players = Object.entries(playerFoulsByTeam[teamClicked])
+          .sort((a, b) => b[1] - a[1]) 
+          .map(([player, fouls]) => `<li>${player}: ${fouls} fouls</li>`)
+          .join("");
+  
+        playerInfoBox.innerHTML = `
+          <h3>Players with Fouls for ${teamClicked}</h3>
+          <ul>${players}</ul>
+        `;
+      });
+    });
+  });
+  
