@@ -6,7 +6,15 @@ const height = containerHeight - margin.top - margin.bottom;
 
 const chartContainer = d3.select('.bar-chart-container');
 
-// Create SVG for bar chart
+// === Chart Title ===
+chartContainer
+  .append('div')
+  .style('text-align', 'center')
+  .style('font', '20px sans-serif')
+  .style('margin-bottom', '10px')
+  .text('Monthly Total Points by Team');
+
+// === Create SVG for bar chart ===
 const svg = chartContainer
   .append('svg')
   .attr('width', width + margin.left + margin.right)
@@ -14,7 +22,7 @@ const svg = chartContainer
   .append('g')
   .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-// Tooltip
+// === Tooltip ===
 const tooltip = d3.select("body")
   .append("div")
   .style("position", "absolute")
@@ -32,11 +40,12 @@ d3.csv('../data/database_24_25.csv').then(data => {
     "11": "Nov",
     "12": "Dec",
     "01": "Jan",
-    "02": "Feb"
+    //"02": "Feb"
   };
 
   const teams = [...new Set(data.map(d => d.Tm))];
-  const months = [...new Set(data.map(d => d.Data.split("-")[1]))];
+  const months = [...new Set(data.map(d => d.Data.split("-")[1]))]
+    .filter(month => month !== "02");
 
   const aggregatedData = months.map(month => {
     return teams.map(team => {
@@ -77,7 +86,7 @@ d3.csv('../data/database_24_25.csv').then(data => {
       .attr('y', d => yScale(d.monthLabel))
       .attr('height', yScale.bandwidth())
       .attr('fill', color)
-      .attr('stroke', 'black') // Border
+      .attr('stroke', 'black')
       .on("mouseover", function (event, d) {
         tooltip.transition().duration(200).style("opacity", 0.9);
         tooltip.html(`<strong>${d.monthLabel}</strong><br/>Points: ${d.points}`)
@@ -96,23 +105,25 @@ d3.csv('../data/database_24_25.csv').then(data => {
       .duration(500)
       .attr('width', d => xScale(d.points))
       .attr('fill', color)
-      .attr('stroke', 'black'); // Keep border on update
+      .attr('stroke', 'black');
   }
 
   updateBarChart(teams[0]);
 });
 
-// Append a text area under the bar chart
-// Append a text area under the bar chart with pre-filled text
+// === Readonly Summary Box Under Chart ===
 chartContainer.append('div')
   .style('margin-top', '10px')
-  .append('textarea')
+  .style('display', 'flex')
+  .style('justify-content', 'center')
+  .append('div')
   .attr('id', 'barChartNotes')
-  .attr('placeholder', 'Add your notes here...')
   .style('width', '500px')
   .style('height', '200px')
-  .style('resize', 'none')
-  .style('font', '14px sans-serif')
-  .property('value', 'This chart shows total points scored per team by month.')
-  .attr("readonly", true);
-
+  .style('font', '18px sans-serif')
+  .style('display', 'flex')
+  .style('align-items', 'center')
+  .style('justify-content', 'center')
+  .style('text-align', 'center')
+  .style('background-color', '#f9f9f9')
+  .text('With these visualizations, it is seen that CLE, BOS, NYK, DEN had the most wins per month in the league');

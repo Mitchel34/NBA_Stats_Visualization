@@ -1,5 +1,13 @@
-document.addEventListener("DOMContentLoaded", function () 
-{
+document.addEventListener("DOMContentLoaded", function () {
+    // Set chart title outside the SVG
+    const chartTitle = document.getElementById("chartTitle");
+    if (chartTitle) {
+        chartTitle.textContent = "Wins and Losses by Team";
+        chartTitle.style.fontSize = "20px";
+        chartTitle.style.fontFamily = "sans-serif";
+        chartTitle.style.margin = "10px";
+    }
+
     d3.csv("../data/database_24_25.csv").then(data => {
         const teamMonthData = {};
         const countedGames = new Set(); 
@@ -35,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function ()
             "11": "November",
             "12": "December",
             "01": "January",
-           //"02": "February"
+            // "02": "February"
         };
         
         const months = Object.keys(monthMap);
@@ -59,11 +67,12 @@ document.addEventListener("DOMContentLoaded", function ()
         const svg = d3.select(".pie-chart-container")
             .append("svg")
             .attr("width", width)
-            .attr("height", height)
-            .append("g")
+            .attr("height", height);
+
+        const g = svg.append("g")
             .attr("transform", `translate(${width / 2}, ${height / 2})`);
 
-        svg.labelVisible = true; 
+        g.labelVisible = true; 
 
         const pie = d3.pie().value(d => d.wins + d.losses);
         const arc = d3.arc().outerRadius(radius).innerRadius(0);
@@ -74,11 +83,12 @@ document.addEventListener("DOMContentLoaded", function ()
                 team,
                 wins: teamMonthData[team][month]?.wins || 0,
                 losses: teamMonthData[team][month]?.losses || 0
-            }));
+            }))
+            .sort((a, b) => a.wins - b.wins);
 
-            svg.selectAll("path").remove();
+            g.selectAll("path").remove();
 
-            const arcs = svg.selectAll("path")
+            const arcs = g.selectAll("path")
                 .data(pie(monthData))
                 .enter()
                 .append("path")
@@ -91,13 +101,11 @@ document.addEventListener("DOMContentLoaded", function ()
                     const wins = d.data.wins;
                     const losses = d.data.losses;
 
-                    // Reset all slices
-                    svg.selectAll("path")
+                    g.selectAll("path")
                         .attr("opacity", 0.85)
                         .classed("active", false)
                         .attr("transform", "translate(0,0)");
 
-                    // Highlight selected slice and move it outward
                     const [x, y] = arc.centroid(d);
                     d3.select(this)
                         .attr("opacity", 1)
@@ -113,10 +121,10 @@ document.addEventListener("DOMContentLoaded", function ()
                     `);
                 });
 
-            svg.selectAll(".label-group").remove();
-            svg.labelVisible = true;
+            g.selectAll(".label-group").remove();
+            g.labelVisible = true;
 
-            const labelsGroup = svg.selectAll(".label-group")
+            const labelsGroup = g.selectAll(".label-group")
                 .data(pie(monthData))
                 .enter()
                 .append("g")
