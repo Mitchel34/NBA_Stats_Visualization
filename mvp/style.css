@@ -4,3 +4,16 @@ section#mvp {
 }
 
 /* You can add additional styling for MVP visualizations here */
+
+#tooltip {
+    position: absolute;
+    background-color: white;
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    pointer-events: none;
+    font-size: 12px;
+    opacity: 0;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+}
