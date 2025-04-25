@@ -4,6 +4,8 @@
 document.addEventListener("DOMContentLoaded", function () {
     const csvFilePath = "../data/database_24_25.csv";
     const plotContainer = document.createElement("div");
+    const foulsSection = document.querySelector("#fouls");
+
     plotContainer.id = "plot";
     plotContainer.style.height = "600px";
   
@@ -12,10 +14,17 @@ document.addEventListener("DOMContentLoaded", function () {
     playerInfoBox.style.marginTop = "20px";
     playerInfoBox.style.fontFamily = "Georgia";
     playerInfoBox.style.fontSize = "16px";
+
+    const playerPlot = document.createElement("div");
+    playerPlot.id = "playerPlot";
+    playerPlot.style.height = "400px";
+    playerPlot.style.marginTop = "20px";
+    foulsSection.appendChild(playerPlot);
   
-    const foulsSection = document.querySelector("#fouls");
+    
     foulsSection.appendChild(plotContainer);
     foulsSection.appendChild(playerInfoBox);
+    foulsSection.appendChild(playerPlot);
   
     Plotly.d3.csv(csvFilePath, function (err, rows) {
       if (err) {
@@ -56,6 +65,11 @@ document.addEventListener("DOMContentLoaded", function () {
       const colors = teams.map((_, i) =>
         `hsl(${(360 * i) / teams.length}, 70%, 50%)`
       );
+      const teamColorMap = {};
+        teams.forEach((team, i) => {
+        teamColorMap[team] = colors[i];
+      });
+
       
       const trace = {
         x: avgFouls,
@@ -123,16 +137,42 @@ document.addEventListener("DOMContentLoaded", function () {
       // Click Event
       document.getElementById("plot").on("plotly_click", function (data) {
         const teamClicked = data.points[0].text;
-        const players = Object.entries(playerFoulsByTeam[teamClicked])
-          .sort((a, b) => b[1] - a[1]) 
-          .map(([player, fouls]) => `<li>${player}: ${fouls} fouls</li>`)
-          .join("");
-  
+        const teamColor = teamColorMap[teamClicked];
+        const playerEntries = Object.entries(playerFoulsByTeam[teamClicked])
+          .sort((a, b) => b[1] - a[1]);
+      
+        const playerNames = playerEntries.map(([player]) => player);
+        const foulCounts = playerEntries.map(([_, fouls]) => fouls);
+      
         playerInfoBox.innerHTML = `
           <h3>Players with Fouls for ${teamClicked}</h3>
-          <ul>${players}</ul>
+          <ul>${playerEntries.map(([p, f]) => `<li>${p}: ${f} fouls</li>`).join("")}</ul>
         `;
+      
+        const playerTrace = {
+          x: playerNames,
+          y: foulCounts,
+          type: "scatter",
+          mode: "markers+text",
+          text: foulCounts.map(f => `${f} fouls`),
+          textposition: "top center",
+          marker: {
+            color: teamColor,
+            size: 10
+          }
+        };
+      
+        const playerLayout = {
+          title: `Fouls by Player (${teamClicked})`,
+          xaxis: { title: "Player", automargin: true },
+          yaxis: { title: "Total Fouls" },
+          margin: { b: 100 },
+          font: { family: 'Georgia', size: 12 }
+        };
+      
+        Plotly.newPlot("playerPlot", [playerTrace], playerLayout);
+      });
+      ;
       });
     });
-  });
   

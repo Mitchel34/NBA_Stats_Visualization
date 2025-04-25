@@ -18,3 +18,27 @@
     padding-left: 1.2rem;
   }
   
+  #plot {
+    width: 100%;
+  }
+  
+  #bottomSection {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    gap: 20px;
+    width: 100%;
+  }
+  
+  #playerInfo {
+    flex: 1;
+    padding: 10px;
+    font-family: Georgia;
+    font-size: 16px;
+    border-right: 1px solid #ccc;
+  }
+  
+  #playerPlot {
+    flex: 2;
+    height: 400px;
+  }
