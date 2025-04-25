@@ -126,4 +126,4 @@ chartContainer.append('div')
   .style('justify-content', 'center')
   .style('text-align', 'center')
   .style('background-color', '#f9f9f9')
-  .text('With these visualizations, it is seen that CLE, BOS, NYK, DEN had the most wins per month in the league');
+  .text('With these visualizations, it is seen that Cleveland Cavaliers, Boston Celtics, New York Knicks, and the Denver Nuggets had the most wins per month in the league. With the Denver Nuggets preforming the best, points and wins wise, in the last fully recorded month in the dataset being January');
