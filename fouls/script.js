@@ -2,36 +2,16 @@
 //Make BY team scatterplots to see total fouls for eacch player??
 
 document.addEventListener("DOMContentLoaded", function () {
+    //filePath
     const csvFilePath = "../data/database_24_25.csv";
-    // const plotContainer = document.createElement("div");
-    // const foulsSection = document.querySelector("#fouls");
 
-    // plotContainer.id = "plot";
-    // plotContainer.style.height = "600px";
-  
-    // const playerInfoBox = document.createElement("div");
-    // playerInfoBox.id = "playerInfo";
-    // playerInfoBox.style.marginTop = "20px";
-    // playerInfoBox.style.fontFamily = "Georgia";
-    // playerInfoBox.style.fontSize = "16px";
-
-    // const playerPlot = document.createElement("div");
-    // playerPlot.id = "playerPlot";
-    // playerPlot.style.height = "400px";
-    // playerPlot.style.marginTop = "20px";
-    // foulsSection.appendChild(playerPlot);
-  
-    
-    // foulsSection.appendChild(plotContainer);
-    // foulsSection.appendChild(playerInfoBox);
-    // foulsSection.appendChild(playerPlot);
     const foulsSection = document.querySelector("#fouls");
 
     const plotContainer = document.createElement("div");
     plotContainer.id = "plot";
     plotContainer.style.height = "600px";
 
-    // Create wrapper for bottom section
+    // Wrapper for the bottom section so they are side by side
     const bottomSection = document.createElement("div");
     bottomSection.id = "bottomSection";
 
@@ -83,10 +63,11 @@ document.addEventListener("DOMContentLoaded", function () {
       const avgFouls = teams.map(team => teamStats[team].totalFouls / teamStats[team].games);
       const winPercents = teams.map(team => teamStats[team].wins / teamStats[team].games);
   
-      
+      //Making it be colored by team
       const colors = teams.map((_, i) =>
         `hsl(${(360 * i) / teams.length}, 70%, 50%)`
       );
+      //Created so the 2nd scatterplot will have the same colors
       const teamColorMap = {};
         teams.forEach((team, i) => {
         teamColorMap[team] = colors[i];
