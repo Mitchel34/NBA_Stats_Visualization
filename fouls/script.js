@@ -3,28 +3,50 @@
 
 document.addEventListener("DOMContentLoaded", function () {
     const csvFilePath = "../data/database_24_25.csv";
-    const plotContainer = document.createElement("div");
+    // const plotContainer = document.createElement("div");
+    // const foulsSection = document.querySelector("#fouls");
+
+    // plotContainer.id = "plot";
+    // plotContainer.style.height = "600px";
+  
+    // const playerInfoBox = document.createElement("div");
+    // playerInfoBox.id = "playerInfo";
+    // playerInfoBox.style.marginTop = "20px";
+    // playerInfoBox.style.fontFamily = "Georgia";
+    // playerInfoBox.style.fontSize = "16px";
+
+    // const playerPlot = document.createElement("div");
+    // playerPlot.id = "playerPlot";
+    // playerPlot.style.height = "400px";
+    // playerPlot.style.marginTop = "20px";
+    // foulsSection.appendChild(playerPlot);
+  
+    
+    // foulsSection.appendChild(plotContainer);
+    // foulsSection.appendChild(playerInfoBox);
+    // foulsSection.appendChild(playerPlot);
     const foulsSection = document.querySelector("#fouls");
 
+    const plotContainer = document.createElement("div");
     plotContainer.id = "plot";
     plotContainer.style.height = "600px";
-  
+
+    // Create wrapper for bottom section
+    const bottomSection = document.createElement("div");
+    bottomSection.id = "bottomSection";
+
     const playerInfoBox = document.createElement("div");
     playerInfoBox.id = "playerInfo";
-    playerInfoBox.style.marginTop = "20px";
-    playerInfoBox.style.fontFamily = "Georgia";
-    playerInfoBox.style.fontSize = "16px";
 
     const playerPlot = document.createElement("div");
     playerPlot.id = "playerPlot";
-    playerPlot.style.height = "400px";
-    playerPlot.style.marginTop = "20px";
-    foulsSection.appendChild(playerPlot);
-  
-    
+
+    // Assemble everything
+    bottomSection.appendChild(playerInfoBox);
+    bottomSection.appendChild(playerPlot);
+
     foulsSection.appendChild(plotContainer);
-    foulsSection.appendChild(playerInfoBox);
-    foulsSection.appendChild(playerPlot);
+    foulsSection.appendChild(bottomSection);
   
     Plotly.d3.csv(csvFilePath, function (err, rows) {
       if (err) {
