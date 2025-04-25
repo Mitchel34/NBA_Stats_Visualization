@@ -3,10 +3,38 @@ section#trades {
     /* Add any trades-specific styling here */
 }
 
-/* Override chart container styles for this page if needed */
+/* Charts wrapper for side-by-side layout */
+.charts-wrapper {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: 20px; /* Space between charts */
+    margin-top: 20px;
+    width: 100%; /* Ensure full width usage */
+}
+
+/* Chart container styles */
 .chart-container {
-    margin-bottom: 50px;
-    padding-bottom: 70px;
+    flex: 1; /* Equal width distribution */
+    min-width: 450px; /* Increased minimum width */
+    padding: 15px;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    height: 500px; /* Set a fixed height for larger charts */
+}
+
+/* Ensure canvases are responsive */
+.chart-container canvas {
+    max-width: 100%;
+    height: 400px !important; /* Fixed height instead of auto */
+    width: 100% !important; /* Full width */
+}
+
+/* Headings within chart containers */
+.chart-container h3 {
+    margin-top: 0;
+    color: #17408B;
 }
 
 /* Trade selection styling */
@@ -17,7 +45,6 @@ section#trades {
     font-size: 16px;
     margin: 15px 0;
     background-color: #fff;
-
     transition: border-color 0.3s;
 }
 
