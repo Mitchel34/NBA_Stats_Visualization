@@ -1,8 +1,3 @@
-/* Trades page specific styles */
-section#trades {
-    /* Add any trades-specific styling here */
-}
-
 /* Charts wrapper for side-by-side layout */
 .charts-wrapper {
     display: flex;
