@@ -1,35 +1,32 @@
-// Fouls page specific JavaScript 
-
-// document.addEventListener('DOMContentLoaded', () => {
-//     console.log('Fouls Page Loaded');
-//     // Fouls visualization code will go here
-    
-//     // Initialize any Fouls page specific functionality
-//     initFoulsPage();
-// });
-
-// function initFoulsPage() {
-//     // Add your Fouls page initialization code here
-//     // This is a placeholder for future development
-// }
 
 //Make BY team scatterplots to see total fouls for eacch player??
 
 document.addEventListener("DOMContentLoaded", function () {
+    //filePath
     const csvFilePath = "../data/database_24_25.csv";
+
+    const foulsSection = document.querySelector("#fouls");
+
     const plotContainer = document.createElement("div");
     plotContainer.id = "plot";
     plotContainer.style.height = "600px";
-  
+
+    // Wrapper for the bottom section so they are side by side
+    const bottomSection = document.createElement("div");
+    bottomSection.id = "bottomSection";
+
     const playerInfoBox = document.createElement("div");
     playerInfoBox.id = "playerInfo";
-    playerInfoBox.style.marginTop = "20px";
-    playerInfoBox.style.fontFamily = "Georgia";
-    playerInfoBox.style.fontSize = "16px";
-  
-    const foulsSection = document.querySelector("#fouls");
+
+    const playerPlot = document.createElement("div");
+    playerPlot.id = "playerPlot";
+
+    // Assemble everything
+    bottomSection.appendChild(playerInfoBox);
+    bottomSection.appendChild(playerPlot);
+
     foulsSection.appendChild(plotContainer);
-    foulsSection.appendChild(playerInfoBox);
+    foulsSection.appendChild(bottomSection);
   
     Plotly.d3.csv(csvFilePath, function (err, rows) {
       if (err) {
@@ -66,6 +63,16 @@ document.addEventListener("DOMContentLoaded", function () {
       const avgFouls = teams.map(team => teamStats[team].totalFouls / teamStats[team].games);
       const winPercents = teams.map(team => teamStats[team].wins / teamStats[team].games);
   
+      //Making it be colored by team
+      const colors = teams.map((_, i) =>
+        `hsl(${(360 * i) / teams.length}, 70%, 50%)`
+      );
+      //Created so the 2nd scatterplot will have the same colors
+      const teamColorMap = {};
+        teams.forEach((team, i) => {
+        teamColorMap[team] = colors[i];
+      });
+
       
       const trace = {
         x: avgFouls,
@@ -76,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
         textposition: "top center",
         marker: {
           size: 12,
-          color: "royalblue"
+          color: colors
         },
         name: "Teams"
       };
@@ -110,12 +117,6 @@ document.addEventListener("DOMContentLoaded", function () {
         },
         name: "Trend Line"
       };
-  
-    //   const layout = {
-    //     title: "Do Team Fouls Affect Win Rate?",
-    //     xaxis: { title: "Average Fouls per Game" },
-    //     yaxis: { title: "Win Percentage", tickformat: ".0%", range: [0, 1] },
-    //   };
     const layout = {
         title: "Do Team Fouls Affect Win Rate?",
         xaxis: { title: "Average Fouls per Game" },
@@ -139,16 +140,42 @@ document.addEventListener("DOMContentLoaded", function () {
       // Click Event
       document.getElementById("plot").on("plotly_click", function (data) {
         const teamClicked = data.points[0].text;
-        const players = Object.entries(playerFoulsByTeam[teamClicked])
-          .sort((a, b) => b[1] - a[1]) 
-          .map(([player, fouls]) => `<li>${player}: ${fouls} fouls</li>`)
-          .join("");
-  
+        const teamColor = teamColorMap[teamClicked];
+        const playerEntries = Object.entries(playerFoulsByTeam[teamClicked])
+          .sort((a, b) => b[1] - a[1]);
+      
+        const playerNames = playerEntries.map(([player]) => player);
+        const foulCounts = playerEntries.map(([_, fouls]) => fouls);
+      
         playerInfoBox.innerHTML = `
           <h3>Players with Fouls for ${teamClicked}</h3>
-          <ul>${players}</ul>
+          <ul>${playerEntries.map(([p, f]) => `<li>${p}: ${f} fouls</li>`).join("")}</ul>
         `;
+      
+        const playerTrace = {
+          x: playerNames,
+          y: foulCounts,
+          type: "scatter",
+          mode: "markers+text",
+          text: foulCounts.map(f => `${f} fouls`),
+          textposition: "top center",
+          marker: {
+            color: teamColor,
+            size: 10
+          }
+        };
+      
+        const playerLayout = {
+          title: `Fouls by Player (${teamClicked})`,
+          xaxis: { title: "Player", automargin: true },
+          yaxis: { title: "Total Fouls" },
+          margin: { b: 100 },
+          font: { family: 'Georgia', size: 12 }
+        };
+      
+        Plotly.newPlot("playerPlot", [playerTrace], playerLayout);
+      });
+      ;
       });
     });
-  });
   
