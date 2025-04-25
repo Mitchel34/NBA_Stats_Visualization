@@ -162,7 +162,8 @@ document.addEventListener("DOMContentLoaded", function () {
           marker: {
             color: teamColor,
             size: 10
-          }
+          },
+          hovertemplate: '%{x}: %{y} fouls<extra></extra>' 
         };
       
         const playerLayout = {
