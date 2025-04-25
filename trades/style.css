@@ -3,7 +3,6 @@
     display: flex;
     flex-wrap: wrap; /* Allow wrapping on smaller screens */
     gap: 20px; /* Space between charts */
-    margin-top: 20px;
     width: 100%; /* Ensure full width usage */
 }
 
@@ -16,14 +15,24 @@
     border: 1px solid #ddd;
     border-radius: 5px;
     background-color: #f9f9f9;
-    height: 500px; /* Set a fixed height for larger charts */
 }
 
 /* Ensure canvases are responsive */
 .chart-container canvas {
     max-width: 100%;
-    height: 400px !important; /* Fixed height instead of auto */
     width: 100% !important; /* Full width */
+    display: block; /* Add display: block to remove potential extra space below canvas */
+}
+
+/* Make trade charts smaller and fit inside their container */
+#player-stats-chart,
+#team-win-percentage-chart {
+    width: 100% !important;
+    max-width: 100%;
+    height: 280px !important;
+    max-height: 320px;
+    margin: 0 auto;
+    display: block;
 }
 
 /* Headings within chart containers */

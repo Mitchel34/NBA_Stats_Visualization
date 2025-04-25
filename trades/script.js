@@ -141,7 +141,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false, // Changed to false to use container dimensions
+                maintainAspectRatio: true, // Change back to true
+                aspectRatio: 1.75, // Add/adjust this (e.g., 1.75 means width is 1.75x height)
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -167,7 +168,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                     if (context.dataset.label === 'Avg PPG (Post-Trade)') {
                                         value = context.parsed.y.toFixed(2); // Format PPG to 2 decimal places
                                     } else if (context.dataset.label === 'Avg MPG (Post-Trade)') {
-                                        value = context.parsed.y.toFixed(1); // Format MPG to 1 decimal place
+                                        value = context.parsed.y.toFixed(1); // Format MPG to 1 decimal places
                                     } else {
                                         value = context.parsed.y; // Default formatting
                                     }
@@ -189,21 +190,30 @@ document.addEventListener('DOMContentLoaded', async () => {
                         }
                     }
                 },
+                interaction: {
+                    mode: 'index',
+                    intersect: true,
+                    axis: 'x' // restricts hover to x-axis (bars)
+                },
+                hover: {
+                    mode: 'index',
+                    intersect: true,
+                    animationDuration: 0
+                },
                 animation: {
                     duration: 500 // Faster animations
                 },
                 onHover: (event, elements) => {
                     if (elements.length > 0) {
                         const element = elements[0];
-                        const index = element.index;
-                        const datasetIndex = element.datasetIndex;
+                        const index = element.index; // Index of the player
                         const playerLabel = playerStatsChart.data.labels[index];
                         const playerName = playerLabel.split(' (')[0];
                         const playerTeam = playerStats[playerName].team;
-                        
-                        // Highlight same stat type (PPG or MPG) for all players
-                        highlightSameStatType(datasetIndex);
-                        
+
+                        // Highlight both bars for the hovered player
+                        highlightHoveredPlayerBars(index);
+
                         // Highlight the corresponding team in the win percentage chart
                         highlightTeamLine(playerTeam);
                     } else {
@@ -215,28 +225,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Function to highlight the same stat type (PPG or MPG) for all players
-    function highlightSameStatType(datasetIndex) {
+    // --- NEW FUNCTION ---
+    // Function to highlight both bars (PPG & MPG) for the hovered player
+    function highlightHoveredPlayerBars(playerIndex) {
         if (!playerStatsChart) return;
-        
-        // Adjust opacity for highlighted vs non-highlighted datasets
-        playerStatsChart.data.datasets.forEach((dataset, i) => {
-            if (i === datasetIndex) {
-                // Highlight the hovered stat type
-                dataset.backgroundColor = i === 0 
-                    ? 'rgba(206, 17, 65, 0.9)' // PPG highlighted
-                    : 'rgba(23, 64, 139, 0.9)'; // MPG highlighted
-                dataset.borderWidth = 2;
-            } else {
-                // Dim the other stat type
-                dataset.backgroundColor = i === 0 
-                    ? 'rgba(206, 17, 65, 0.3)' // PPG dimmed
-                    : 'rgba(23, 64, 139, 0.3)'; // MPG dimmed
-                dataset.borderWidth = 1;
+
+        const numPlayers = playerStatsChart.data.labels.length;
+
+        playerStatsChart.data.datasets.forEach((dataset, datasetIndex) => {
+            const highlightColor = datasetIndex === 0 ? 'rgba(206, 17, 65, 0.9)' : 'rgba(23, 64, 139, 0.9)'; // Brighter
+            const dimColor = datasetIndex === 0 ? 'rgba(206, 17, 65, 0.3)' : 'rgba(23, 64, 139, 0.3)'; // Dimmed
+
+            // Create new arrays for background colors and border widths
+            const backgroundColors = [];
+            const borderWidhts = [];
+
+            for (let i = 0; i < numPlayers; i++) {
+                if (i === playerIndex) {
+                    backgroundColors.push(highlightColor); // Highlight this player's bar
+                    borderWidhts.push(2);
+                } else {
+                    backgroundColors.push(dimColor); // Dim other players' bars
+                    borderWidhts.push(1);
+                }
             }
+            dataset.backgroundColor = backgroundColors;
+            dataset.borderWidth = borderWidhts;
         });
-        
-        playerStatsChart.update('none'); // Use 'none' to skip animation for immediate update
+
+        playerStatsChart.update('none');
     }
 
     // Function to highlight a specific team's line in the win percentage chart
@@ -271,14 +288,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     function resetHighlights() {
         // Reset player stats chart
         if (playerStatsChart) {
-            playerStatsChart.data.datasets[0].backgroundColor = 'rgba(206, 17, 65, 0.7)'; // PPG default
-            playerStatsChart.data.datasets[1].backgroundColor = 'rgba(23, 64, 139, 0.7)'; // MPG default
-            playerStatsChart.data.datasets.forEach(dataset => {
-                dataset.borderWidth = 1;
+            const numPlayers = playerStatsChart.data.labels.length;
+            playerStatsChart.data.datasets.forEach((dataset, datasetIndex) => {
+                const defaultColor = datasetIndex === 0 ? 'rgba(206, 17, 65, 0.7)' : 'rgba(23, 64, 139, 0.7)';
+                // Reset background color to an array of default colors
+                dataset.backgroundColor = new Array(numPlayers).fill(defaultColor);
+                // Reset border width to an array of default widths
+                dataset.borderWidth = new Array(numPlayers).fill(1);
             });
             playerStatsChart.update('none'); // Use 'none' to skip animation
         }
-        
+
         // Reset team win percentage chart
         if (teamWinPercentageChart) {
             teamWinPercentageChart.data.datasets.forEach((dataset, index) => {
@@ -432,8 +452,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 },
                 elements: {
                     point: {
-                        radius: 6, // Explicitly set default radius in elements config
-                        hitRadius: 8, 
+                        radius: 6, // Visible point size
+                        hitRadius: 4, // Reduce for more precise hover
                         hoverRadius: 9 
                     }
                 },
