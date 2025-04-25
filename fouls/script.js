@@ -1,17 +1,3 @@
-// Fouls page specific JavaScript 
-
-// document.addEventListener('DOMContentLoaded', () => {
-//     console.log('Fouls Page Loaded');
-//     // Fouls visualization code will go here
-    
-//     // Initialize any Fouls page specific functionality
-//     initFoulsPage();
-// });
-
-// function initFoulsPage() {
-//     // Add your Fouls page initialization code here
-//     // This is a placeholder for future development
-// }
 
 //Make BY team scatterplots to see total fouls for eacch player??
 
@@ -67,6 +53,10 @@ document.addEventListener("DOMContentLoaded", function () {
       const winPercents = teams.map(team => teamStats[team].wins / teamStats[team].games);
   
       
+      const colors = teams.map((_, i) =>
+        `hsl(${(360 * i) / teams.length}, 70%, 50%)`
+      );
+      
       const trace = {
         x: avgFouls,
         y: winPercents,
@@ -76,7 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
         textposition: "top center",
         marker: {
           size: 12,
-          color: "royalblue"
+          color: colors
         },
         name: "Teams"
       };
@@ -110,12 +100,6 @@ document.addEventListener("DOMContentLoaded", function () {
         },
         name: "Trend Line"
       };
-  
-    //   const layout = {
-    //     title: "Do Team Fouls Affect Win Rate?",
-    //     xaxis: { title: "Average Fouls per Game" },
-    //     yaxis: { title: "Win Percentage", tickformat: ".0%", range: [0, 1] },
-    //   };
     const layout = {
         title: "Do Team Fouls Affect Win Rate?",
         xaxis: { title: "Average Fouls per Game" },
