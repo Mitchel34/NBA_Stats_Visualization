@@ -141,8 +141,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
-                aspectRatio: 1.5,
+                maintainAspectRatio: false, // Changed to false to use container dimensions
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -374,8 +373,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
-                aspectRatio: 2,
+                maintainAspectRatio: false, // Changed to false to use container dimensions
                 scales: {
                     x: { 
                         // ... existing x-axis config ...
