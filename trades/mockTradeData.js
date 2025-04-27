@@ -89,7 +89,7 @@ export function generateMockGames(startDateStr, endDateStr, tradesInfo) {
                         Tm: team,
                         Opp: opponent,
                         Res: result,
-                        MP: minutes, // Use number for simplicity
+                        MP: minutes, 
                         FG: fgm,
                         FGA: fga,
                         "FG%": fga > 0 ? (fgm / fga) : 0,
