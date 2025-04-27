@@ -6,6 +6,9 @@
     <title>NBA MVP Race - NBA Stats Viz</title>
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="style.css">
+    <!-- Add Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Re-add D3.js for data loading and selection -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <!-- Page-specific CSS is now included -->
 </head>
@@ -26,27 +29,41 @@
     <main>
         <section id="mvp">
             <h2>1. Who will win NBA League MVP?</h2>
+            <p>This page analyzes player statistics to predict potential MVP candidates for the 2024-2025 NBA season. Use the team filter to focus on specific teams.</p>
             <label for="chooseTeam">Filter by Team:</label>
             <select id="chooseTeam">
                 <option value="All">All Teams</option>
+                <!-- Options will be populated by script -->
             </select>
-            <div id = "chart-container"></div>
-            <script src="script.js"></script>
+            <!-- Container for side-by-side charts -->
+            <div class="chart-row">
+                <!-- Now MVP Score comes first -->
+                <div class="chart-container">
+                    <h3>Top 5 Players by MVP Score</h3>
+                    <p>This chart shows the top 5 players according to our calculated MVP score, which combines points, rebounds, assists, field goal percentage, and game score into a weighted formula to predict MVP potential.</p>
+                    <canvas id="mvpScoreBarChart"></canvas>
+                </div>
+                <!-- Scatter plot comes second -->
+                <div class="chart-container">
+                    <h3>Points vs. Minutes Played</h3>
+                    <p>This scatter plot shows the relationship between minutes played and points scored for top 10 MVP candidates. Players who score more points in less time are often stronger MVP contenders.</p>
+                    <canvas id="mvpScatterChart"></canvas>
+                </div>
+                <!-- Points per game bar chart remains last -->
+                <div class="chart-container">
+                    <h3>Top Players by Points Per Game</h3>
+                    <p>This bar chart ranks the top 15 scorers by average points per game. Scoring ability is a key factor in MVP voting, with the league's top scorers often in MVP contention.</p>
+                    <canvas id="mvpBarChart"></canvas>
+                </div>
+            </div>
         </section>
-
-
-        
     </main>
 
     <footer>
         <p>CS3435 Data Collection & Visualization - Dr. Tinghao Feng - Appalachian State University - Group 7 SVGeniuses</p>
     </footer>
 
-    
-    <!-- Add any page-specific JS scripts here -->
-
-    <!-- Tooltip container -->
-    <div id="tooltip"></div>
-
+    <!-- Load script after elements are defined -->
+    <script src="script.js"></script>
 </body>
 </html>

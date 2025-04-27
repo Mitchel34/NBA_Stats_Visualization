@@ -1,19 +1,46 @@
-/* MVP page specific styles */
-section#mvp {
-    /* Add any MVP-specific styling here */
+/* Container for side-by-side charts */
+.chart-row {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: 20px; /* Space between charts */
+    margin-top: 20px;
 }
 
-/* You can add additional styling for MVP visualizations here */
+.chart-container {
+    flex: 1; /* Allow charts to grow */
+    min-width: 300px; /* Minimum width before wrapping */
+    /* Ensure a height so that Chart.js canvases have space to render */
+    height: 400px;
+    /* Optional: Add border or background for visual separation */
+    /* border: 1px solid #eee; */
+    /* padding: 15px; */
+    /* box-shadow: 0 2px 4px rgba(0,0,0,0.1); */
+}
 
-#tooltip {
-    position: absolute;
-    background-color: white;
-    padding: 6px 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    pointer-events: none;
-    font-size: 12px;
-    opacity: 0;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-    z-index: 10;
+/* Ensure canvases are responsive within their containers */
+.chart-container canvas {
+    max-width: 100%;
+    width: 100% !important;
+    height: auto !important;
+    display: block;
+}
+
+/* Fix dimensions for specific MVP charts */
+#mvpScatterChart,
+#mvpBarChart,
+#mvpScoreBarChart {
+    width: 100% !important;
+    max-width: 100%;
+    height: 280px !important;
+    max-height: 350px;
+    margin: 0 auto;
+    display: block;
+}
+
+/* Smaller font for chart descriptions */
+.chart-container p {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 5px;
+    margin-bottom: 10px;
 }
