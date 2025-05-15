@@ -28,7 +28,7 @@ This project provides interactive visualizations of NBA data from the 2024-2025 
 6. Navigate through the different visualization pages using the navigation bar at the top
 
 ### Project Structure
-- Each visualization is contained in its own folder
-- The data folder contains the NBA statistics dataset
-- CSS files are used for styling each page
-- JavaScript files handle data processing and visualization rendering
+- Each visualization is contained in its own folder.
+- The data folder contains the NBA statistics dataset.
+- CSS files are used for styling each page.
+- JavaScript files handle data processing and visualization rendering.
